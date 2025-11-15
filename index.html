@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan Untukmu</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a1929, #1a3a5f, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            min-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .message-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 35px 30px;
+            margin: 20px 0;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            width: 100%;
+            max-width: 650px;
+            transition: all 0.5s ease;
+        }
+
+        .message-box.revealed {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            box-shadow: 0 20px 50px rgba(255, 154, 158, 0.2);
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            margin-bottom: 25px;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4, #ffd166);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            text-align: center;
+            line-height: 1.3;
+            font-weight: 700;
+        }
+
+        .message {
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            line-height: 1.7;
+            margin-bottom: 25px;
+            color: #f0f0f0;
+            text-align: justify;
+        }
+
+        .message p {
+            margin-bottom: 18px;
+        }
+
+        .highlight {
+            color: #ffd166;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(255, 209, 102, 0.3);
+        }
+
+        .signature {
+            font-style: italic;
+            margin-top: 25px;
+            color: #fad0c4;
+            text-align: right;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 500;
+        }
+
+        .rocket-section {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            height: 400px;
+            margin: 40px 0;
+            overflow: visible; 
+        }
+
+        .rocket {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px; 
+            height: 160px; 
+            z-index: 20;
+            opacity: 0;
+            filter: drop-shadow(0 0 15px rgba(255, 154, 158, 0.7));
+            will-change: transform, opacity; 
+        }
+
+        .rocket-body {
+            position: absolute;
+            width: 48px; 
+            height: 100px; 
+            background: linear-gradient(to bottom, #d64045, #ee6b6e, #f8a0a3); 
+            border-radius: 24px 24px 10px 10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            box-shadow: 
+                inset 0 0 12px rgba(255, 255, 255, 0.4),
+                0 0 25px rgba(255, 107, 107, 0.6);
+            border-bottom: 2px solid rgba(0,0,0,0.1); 
+        }
+
+        .rocket-nose {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 24px solid transparent; 
+            border-right: 24px solid transparent;
+            border-bottom: 45px solid #c23b41; 
+            top: -45px; 
+            left: 50%;
+            transform: translateX(-50%);
+            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+            border-radius: 50% 50% 0 0; 
+        }
+
+        .rocket-fin {
+            position: absolute;
+            width: 22px; 
+            height: 55px; 
+            background: linear-gradient(to bottom, #c23b41, #a32d32); 
+            bottom: -15px; 
+            border-radius: 8px 4px 0 0; 
+            box-shadow: 0 4px 10px rgba(255, 82, 82, 0.7);
+            border-right: 1px solid rgba(0,0,0,0.1); 
+        }
+
+        .fin-left {
+            left: -5px; 
+            transform: rotate(-35deg); 
+        }
+
+        .fin-right {
+            right: -5px; 
+            transform: rotate(35deg); 
+        }
+
+        .window {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 30% 30%, #e0f2f7, #a6dcef, #79c2d0); 
+            border-radius: 50%;
+            top: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid #1a3a5f; 
+            box-shadow: 
+                inset 0 0 12px rgba(255, 255, 255, 0.6),
+                0 0 15px rgba(166, 220, 239, 0.7);
+            z-index: 3;
+        }
+
+        .rocket-body::before {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            top: 60%;
+            left: 10%;
+            z-index: 3;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+        }
+
+        .flame-container {
+            position: absolute;
+            bottom: -50px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .flame {
+            width: 30px; 
+            height: 70px; 
+            background: linear-gradient(to bottom, #ffd166, #ff9a9e, #ef476f, #ff0000);
+            border-radius: 50% 50% 20% 20%;
+            opacity: 0.9;
+            filter: blur(8px) brightness(1.3); 
+            transform-origin: center top;
+            will-change: height, transform, filter; 
+        }
+
+        .flame-spark {
+            position: absolute;
+            width: 8px;
+            height: 15px;
+            background: #ffd166;
+            border-radius: 50%;
+            filter: blur(3px);
+            opacity: 0;
+        }
+
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            filter: blur(1px);
+        }
+
+        .moon {
+            position: fixed;
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 50%;
+            top: 50px;
+            right: 50px;
+            box-shadow: 
+                0 0 50px rgba(248, 249, 250, 0.9),
+                inset -10px -10px 20px rgba(0, 0, 0, 0.1);
+            opacity: 0.9;
+            z-index: 2;
+        }
+
+        .moon-crater {
+            position: absolute;
+            background: #dee2e6;
+            border-radius: 50%;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            margin: 30px 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ff9a9e, #fad0c4);
+            color: #1a3a5f;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s;
+            box-shadow: 
+                0 8px 20px rgba(255, 107, 107, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            width: auto;
+            min-width: 220px;
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+            will-change: transform, box-shadow; 
+        }
+
+        button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 12px 25px rgba(255, 107, 107, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            background: #ffd166;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 15;
+            will-change: transform, opacity, scale; 
+        }
+
+        .hearts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 12;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: clamp(18px, 4vw, 24px);
+            color: #ff6b6b;
+            opacity: 0;
+            z-index: 13;
+            filter: drop-shadow(0 0 5px rgba(255, 107, 107, 0.5));
+            will-change: transform, opacity, scale, rotate; 
+        }
+
+        .physics-symbols {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden; 
+        }
+
+        .symbol {
+            position: absolute;
+            font-size: clamp(20px, 4vw, 28px);
+            color: rgba(255, 255, 255, 0.4);
+            opacity: 0;
+            font-weight: bold;
+            will-change: transform, opacity, scale; 
+        }
+
+        .message-trail {
+            position: absolute;
+            width: 120px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            opacity: 0;
+            z-index: 18;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #ffd166;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            will-change: transform, opacity, scale; 
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .message-box {
+                padding: 30px 25px;
+                margin: 15px 0;
+            }
+            
+            .rocket-section {
+                height: 350px;
+                margin: 30px 0;
+            }
+            
+            .rocket {
+                width: 70px;
+                height: 140px;
+            }
+
+            .rocket-body {
+                width: 42px;
+                height: 90px;
+                border-radius: 21px 21px 8px 8px;
+            }
+            .rocket-body::before {
+                height: 7px;
+                top: 55%;
+            }
+            .rocket-nose {
+                border-left: 21px solid transparent;
+                border-right: 21px solid transparent;
+                border-bottom: 40px solid #c23b41;
+                top: -40px;
+            }
+            .rocket-fin {
+                width: 20px;
+                height: 50px;
+                bottom: -12px;
+            }
+            .fin-left { left: -4px; }
+            .fin-right { right: -4px; }
+            .window { 
+                width: 22px;
+                height: 22px;
+                top: 18px;
+                border-width: 3px;
+            }
+            .flame-container { bottom: -45px; }
+            .flame {
+                width: 28px;
+                height: 65px;
+                filter: blur(7px) brightness(1.2);
+            }
+            
+            .moon {
+                width: 120px;
+                height: 120px;
+                top: 30px;
+                right: 30px;
+            }
+            
+            button {
+                padding: 16px 35px;
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .message-box {
+                padding: 25px 20px;
+                margin: 10px 0;
+            }
+            
+            .rocket-section {
+                height: 300px;
+            }
+            
+            .rocket {
+                width: 60px;
+                height: 120px;
+                bottom: 60px;
+            }
+
+            .rocket-body {
+                width: 36px;
+                height: 80px;
+                border-radius: 18px 18px 7px 7px;
+            }
+            .rocket-body::before {
+                height: 6px;
+                top: 50%;
+            }
+            .rocket-nose {
+                border-left: 18px solid transparent;
+                border-right: 18px solid transparent;
+                border-bottom: 35px solid #c23b41;
+                top: -35px;
+            }
+            .rocket-fin {
+                width: 18px;
+                height: 45px;
+                bottom: -10px;
+            }
+            .fin-left { left: -3px; }
+            .fin-right { right: -3px; }
+            .window { 
+                width: 20px;
+                height: 20px;
+                top: 16px;
+                border-width: 2px;
+            }
+            .flame-container { bottom: -40px; }
+            .flame {
+                width: 25px;
+                height: 60px;
+                filter: blur(6px) brightness(1.1);
+            }
+            
+            .moon {
+                width: 100px;
+                height: 100px;
+                top: 20px;
+                right: 20px;
+            }
+            
+            button {
+                padding: 14px 30px;
+                min-width: 180px;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .spacer {
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <audio id="backgroundMusic" src="Terhebat_CJR.mp3" loop></audio>
+
+    <div class="stars-container" id="stars"></div>
+    <div class="moon">
+        <div class="moon-crater" style="width: 25px; height: 25px; top: 30px; left: 30px;"></div>
+        <div class="moon-crater" style="width: 18px; height: 18px; top: 60px; left: 70px;"></div>
+        <div class="moon-crater" style="width: 22px; height: 22px; top: 65px; left: 30px;"></div>
+    </div>
+    
+    <div class="physics-symbols" id="physicsSymbols"></div>
+
+    <div class="container">
+        <div class="message-box" id="messageBox">
+            <h1>Untuk Ajeng</h1>
+            <div class="message">
+                <p>اجع مآف يا.
+                    كالاو سلالو ساكيتي هاتيمو 
+                    <span class="highlight">كالي يني تيداك اكان، اكو ياع ماجو ديكيت</span>.</p>
+                <p>Maafkan aku yang kadang lupa bahwa di balik kecerdasanmu memahami fisika kuantum, 
+                ada hati yang sama lembutnya dengan medan gravitasi bulan.</p>
+                <p>Semangat mengejar Nobel nyaa yaaa.... keren kamu bro, 
+                tapi satu hal yang pasti: <span class="highlight">usaha tidak akan menghianati hasil</span>.</p>
+            </div>
+            <p class="signature">- Dengan harapan dan bintang-bintang</p>
+        </div>
+
+        <div class="rocket-section">
+            <div class="rocket" id="rocket">
+                <div class="rocket-body"></div>
+                <div class="rocket-nose"></div>
+                <div class="rocket-fin fin-left"></div>
+                <div class="rocket-fin fin-right"></div>
+                <div class="window"></div>
+                <div class="flame-container">
+                    <div class="flame" id="flame"></div>
+                </div>
+                <div class="message-trail" id="messageTrail">Pesan Dinar</div>
+            </div>
+            <div class="hearts" id="hearts"></div>
+            </div>
+
+        <div class="controls">
+            <button id="launchButton">🚀 Luncurkan Pesan دينار </button>
+        </div>
+        
+        <div class="spacer"></div>
+    </div>
+
+    <script>
+        // Inisialisasi elemen
+        const messageBox = document.getElementById('messageBox');
+        const rocket = document.getElementById('rocket');
+        const flame = document.getElementById('flame');
+        const stars = document.getElementById('stars');
+        const hearts = document.getElementById('hearts');
+        const physicsSymbols = document.getElementById('physicsSymbols');
+        const launchButton = document.getElementById('launchButton');
+        const messageTrail = document.getElementById('messageTrail');
+
+        // ▼▼▼ 2. ELEMEN AUDIO DIAMBIL OLEH JAVASCRIPT ▼▼▼
+        const backgroundMusic = document.getElementById('backgroundMusic');
+
+        // Buat bintang-bintang yang benar-benar penuh
+        function createStars() {
+            for (let i = 0; i < 500; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                stars.appendChild(star);
+            }
+            setInterval(createShootingStar, 3000);
+        }
+
+        // Buat bintang jatuh
+        function createShootingStar() {
+            const shootingStar = document.createElement('div');
+            shootingStar.classList.add('shooting-star');
+            shootingStar.style.left = `${Math.random() * 100}%`;
+            shootingStar.style.top = `${Math.random() * 30}%`;
+            stars.appendChild(shootingStar);
+            anime({
+                targets: shootingStar,
+                translateX: 500,
+                translateY: 500,
+                opacity: [0, 1, 0],
+                duration: 2000,
+                easing: 'easeOutQuad',
+                complete: function() {
+                    if (shootingStar.parentNode) {
+                        stars.removeChild(shootingStar);
+                    }
+                }
+            });
+        }
+
+        function createPhysicsSymbols() {
+            const symbols = ['α', 'β', 'γ', 'δ', 'ε', 'θ', 'λ', 'μ', 'π', 'ρ', 'σ', 'τ', 'φ', 'ψ', 'ω', '∞', '∫', '∑', '√', '∆', '∂', '∇', '≈', '≠', '≤', '≥', 'ℏ', 'c', 'E=mc²', 'Φ', 'Δt', 'G'];
+            const symbolCount = 80; 
+
+            for (let i = 0; i < symbolCount; i++) {
+                const elem = document.createElement('div');
+                elem.classList.add('symbol');
+                elem.textContent = symbols[Math.floor(Math.random() * symbols.length)]; 
+                elem.style.left = `${Math.random() * 100}%`;
+                elem.style.top = `${Math.random() * 100}%`;
+                elem.style.fontSize = `${Math.random() * 18 + 15}px`; 
+                
+                physicsSymbols.appendChild(elem);
+            }
+        }
+
+        // --- Perbaikan Animasi Roket: Loop setelah peluncuran ---
+        function launchRocket() {
+            // ▼▼▼ 3. MUSIK DIPUTAR SAAT TOMBOL DIKLIK ▼▼▼
+            backgroundMusic.play();
+
+            // Sembunyikan tombol
+            anime({
+                targets: launchButton,
+                opacity: 0,
+                scale: 0.8,
+                duration: 600,
+                easing: 'easeInOutQuad',
+                complete: () => {
+                    launchButton.style.display = 'none'; 
+                }
+            });
+
+            // Animasi simbol fisika (biarkan looping)
+            anime({
+                targets: '.symbol',
+                opacity: [0, 0.6, 0], 
+                translateY: [anime.stagger(50, {direction: 'reverse'}), anime.stagger(-50)], 
+                scale: [0.5, 1.2],
+                duration: 6000, 
+                delay: anime.stagger(80, {grid: [10,10], from: 'center'}), 
+                easing: 'easeInOutSine',
+                loop: true
+            });
+
+            // Animasi api menyala (biarkan looping)
+            anime({
+                targets: flame,
+                height: [70, 100, 75], 
+                scaleY: [1, 1.5, 1],
+                filter: ['blur(8px) brightness(1.3)', 'blur(12px) brightness(1.5)', 'blur(8px) brightness(1.3)'],
+                duration: 300, 
+                easing: 'easeInOutQuad',
+                loop: true,
+                direction: 'alternate',
+                autoplay: true 
+            });
+
+            // Buat partikel, hati, dan percikan (HANYA UNTUK PELUNCURAN AWAL)
+            const particleInterval = setInterval(createParticle, 60);
+            const heartInterval = setInterval(createHeart, 600);
+            const sparkInterval = setInterval(createSpark, 150);
+
+            // --- Timeline 1: Peluncuran Besar (Sekali Jalan) ---
+            const rocketAnimation = anime.timeline({
+                easing: 'easeInOutSine',
+                duration: 6000,
+                // --- INI BAGIAN BARUNYA ---
+                complete: function() {
+                    // 1. Hentikan semua efek peluncuran awal
+                    clearInterval(particleInterval);
+                    clearInterval(heartInterval);
+                    clearInterval(sparkInterval);
+                    
+                    // 2. Sembunyikan trail pesan selamanya
+                    anime.set(messageTrail, { opacity: 0 });
+
+                    // 3. Reset roket ke posisi awal (instan)
+                    //    (Saat ini roket ada di opacity 0, scale 0.2, dll)
+                    anime.set(rocket, { 
+                        opacity: 1, 
+                        scale: 1, 
+                        translateY: 0, // Reset Y
+                        translateX: 0, // Reset X
+                        rotate: 0      // Reset rotasi
+                    });
+
+                    // 4. Mulai Timeline 2: Loop Kecil (Terus Menerus)
+                    anime({
+                        targets: rocket,
+                        // Naik (Y: -280) lalu Turun (Y: 0)
+                        translateY: [
+                            { value: -280, duration: 2500, easing: 'easeOutSine' },
+                            { value: 0, duration: 2500, easing: 'easeInSine' }
+                        ],
+                        // Sedikit goyangan "idle" ke kiri dan kanan
+                        translateX: [
+                            { value: 8, duration: 1250, easing: 'easeInOutQuad' },
+                            { value: -8, duration: 1250, easing: 'easeInOutQuad' },
+                            { value: 0, duration: 2500, easing: 'easeInOutQuad' }
+                        ],
+                        delay: 500, // Tunggu 0.5 detik sebelum mulai loop
+                        duration: 5000,
+                        loop: true,
+                        easing: 'linear' // Easing sudah diatur di keyframes
+                    });
+                }
+                // --- AKHIR BAGIAN BARU ---
+            });
+
+            // Definisikan step-step Timeline 1
+            rocketAnimation
+                .add({
+                    targets: rocket,
+                    opacity: [0, 1],
+                    scale: [0.5, 1],
+                    duration: 1000,
+                    easing: 'easeOutBack'
+                })
+                .add({
+                    targets: messageTrail,
+                    opacity: [0, 0.8],
+                    translateY: [20, 0],
+                    duration: 700
+                }, '-=700') 
+                .add({
+                    targets: rocket, 
+                    translateY: -(window.innerHeight * 1.5), 
+                    translateX: [
+                        { value: '+=20', duration: 800, easing: 'easeOutQuad' },
+                        { value: '-=40', duration: 1200, easing: 'easeInOutQuad' },
+                        { value: '+=30', duration: 1000, easing: 'easeOutQuad' },
+                        { value: '0', duration: 1800, easing: 'easeOutSine' }
+                    ], 
+                    rotate: [
+                        { value: '2deg', duration: 800, easing: 'easeOutQuad' },
+                        { value: '-2deg', duration: 1200, easing: 'easeInOutQuad' },
+                        { value: '1deg', duration: 1000, easing: 'easeOutQuad' },
+                        { value: '0deg', duration: 1800, easing: 'easeOutSine' }
+                    ], 
+                    duration: 5000, 
+                    easing: 'easeOutSine',
+                    update: function(anim) {
+                        if (anim.progress > 40) { 
+                            messageTrail.style.opacity = (1 - ((anim.progress - 40) / 60)) * 0.8;
+                        }
+                    }
+                }, '+=500') 
+                .add({
+                    targets: rocket,
+                    opacity: 0,
+                    scale: 0.2, 
+                    duration: 1500,
+                    easing: 'easeInQuad'
+                }, '-=1500') 
+                .add({
+                    targets: messageBox,
+                    opacity: 1,
+                    translateY: 0,
+                    scale: 1,
+                    duration: 1500,
+                    easing: 'easeOutBack',
+                    begin: function() {
+                        messageBox.classList.add('revealed');
+                    }
+                }, '-=4000'); 
+
+            // Hapus setTimeout, karena interval dihentikan oleh .complete
+        }
+
+        // Buat partikel
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 8 + 4;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.background = `hsl(${Math.random() * 30 + 10}, 100%, 65%)`;
+            
+            const rocketRect = rocket.getBoundingClientRect();
+            const containerRect = document.body.getBoundingClientRect();
+            
+            if (rocketRect.top < window.innerHeight && rocketRect.bottom > 0) {
+                particle.style.left = `${rocketRect.left + (rocketRect.width / 2) - (size / 2) - containerRect.left}px`;
+                particle.style.top = `${rocketRect.top + rocketRect.height - (size / 2) - containerRect.top + 30}px`;
+                
+                document.body.appendChild(particle);
+                
+                anime({
+                    targets: particle,
+                    translateY: Math.random() * 100 + 50, 
+                    translateX: Math.random() * 100 - 50,
+                    opacity: [1, 0],
+                    scale: [1, 0],
+                    duration: Math.random() * 1000 + 500,
+                    easing: 'easeOutQuad',
+                    complete: function() {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Buat percikan api
+        function createSpark() {
+            const spark = document.createElement('div');
+            spark.classList.add('flame-spark');
+            
+            spark.style.left = `calc(50% + ${Math.random() * 20 - 10}px)`;
+            spark.style.bottom = '20px'; 
+            
+            const flameContainer = document.querySelector('.flame-container');
+            if (flameContainer) {
+                flameContainer.appendChild(spark);
+                
+                anime({
+                    targets: spark,
+                    translateY: -Math.random() * 40 - 20,
+                    translateX: Math.random() * 30 - 15,
+                    opacity: [0, 1, 0],
+                    scale: [0.5, 1.2, 0],
+                    duration: Math.random() * 600 + 400,
+                    easing: 'easeOutQuad',
+                    complete: function() {
+                        if (spark.parentNode) {
+                            spark.parentNode.removeChild(spark);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Buat hati
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤';
+            
+            heart.style.left = `${Math.random() * 100}%`;
+            heart.style.top = `${Math.random() * 40 + 60}%`;
+            
+            hearts.appendChild(heart);
+            
+            anime({
+                targets: heart,
+                translateY: -120,
+                opacity: [0, 1, 0],
+                scale: [0.3, 1.5, 0.8],
+                rotate: Math.random() * 60 - 30,
+                duration: 2000,
+                easing: 'easeOutQuad',
+                complete: function() {
+                    if (heart.parentNode) {
+                        hearts.removeChild(heart);
+                    }
+                }
+            });
+        }
+
+        // Event listener untuk tombol
+        launchButton.addEventListener('click', launchRocket);
+
+        // Inisialisasi
+        createStars();
+        createPhysicsSymbols();
+
+        // Animasi bulan
+        anime({
+            targets: '.moon',
+            translateY: [10, -10],
+            duration: 4000,
+            easing: 'easeInOutQuad',
+            direction: 'alternate',
+            loop: true
+        });
+    </script>
+</body>
+</html>
